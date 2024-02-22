@@ -77,9 +77,11 @@ const CustomInlineToolbarEditor = ({
   index,
   i,
   separator,
+  status,
 }) => {
   const [editorState, setEditorState] = useState(null);
   const [blocks, setBlocks] = useState(content);
+  const [text, settext] = useState(initialText);
   const editorRef = useRef(null);
   const onChange = (newEditorState) => {
     setEditorState(newEditorState);
@@ -88,50 +90,131 @@ const CustomInlineToolbarEditor = ({
   const focus = () => {
     editorRef.current.focus();
   };
-
+  // console.log(contentData,"contentData")
   const editorKey = useMemo(() => uuidv4(), []);
 
+  console.log(initialText, "initialText");
   useEffect(() => {
-    setEditorState(createEditorStateWithText(initialText)); // Initialize editor content with the same text on both server and client
-  }, []);
+    setEditorState(createEditorStateWithText(text?.text ? text?.text : text)); // Initialize editor content with the same text on both server and client
+  }, [initialText]);
 
-  // console.log(contentData, "contentData");
+  console.log(contentData, "contentData");
   const mergeBlocks = (blockIndex: number, type: string) => {
     if (blockIndex >= 0 && blockIndex < blocks.length) {
       const newBlocks = [...blocks];
       if (type === "up" && blockIndex > 0) {
-        newBlocks[blockIndex - 1] += newBlocks[blockIndex];
+        newBlocks[blockIndex - 1] += "<br/>" + newBlocks[blockIndex];
+
         newBlocks.splice(blockIndex, 1);
-        blockIndex -= 1; // Update the blockIndex after merging with the upper block
+        blockIndex -= 1;
+        console.log(newBlocks, "newBlocks");
       } else if (type === "down" && blockIndex < newBlocks.length - 1) {
-        newBlocks[blockIndex] += newBlocks[blockIndex + 1];
+        newBlocks[blockIndex] += "<br/>" + newBlocks[blockIndex + 1];
         newBlocks.splice(blockIndex + 1, 1);
       }
-
+      // com
       const newData = [...contentData];
+      console.log(contentData, "contentData");
+      console.log(newData, "contentData newData");
       if (newData && newData.length > 0) {
-        const firstItem = { ...newData[0].yooptaData[i] };
+        const firstItem = { ...newData[0].yooptaData[0] };
+        console.log(firstItem, "newData");
         if (firstItem.children && firstItem.children.length > 0) {
-          let stringOnly;
-          if (separator === "doubleline") {
-            stringOnly = newBlocks.join("\n\n");
-          } else {
-            stringOnly = newBlocks.join(",");
-          }
-          firstItem.children[0].text = stringOnly;
+          console.log(newBlocks, "Waste");
+          // let stringOnly;
+          // if (separator === "doubleline") {
+          //   stringOnly = newBlocks.join(",");
+          // } else {
+          //   stringOnly = newBlocks.join(",");
+          // }
+          console.log(firstItem.children[0].text, "firstItem.children[0].text");
+
+          firstItem.children[0].text = newBlocks
+            .join("',")
+            .replace(/, /g, "\n\n");
         }
-        newData[0].yooptaData[i] = firstItem;
+        // newData[0].yooptaData[0].children[0].text = newBlocks
+        //   .join("'")
+        //   .replace(/,/g, "\n\n");
+        newData[0].yooptaData[0].children[0].text = newBlocks.join("\n\n");
+        console.log(newBlocks.join("\n\n"), "newblock");
+
+        console.log(newData, "Last response");
         setContentData(newData);
       }
     }
   };
 
+  // console.log(contentData, "Map data");
+
+  const handlemergeContent = (blockIndex: number, type: string) => {
+    if (blockIndex >= 0 && blockIndex < blocks.length) {
+      const container = document.querySelector(`.editor-${blockIndex}`);
+      if (type === "down" && blockIndex < blocks.length - 1) {
+        container.classList.add("no-space");
+        addScissorDiv(container);
+      } else if (type === "up" && blockIndex > 0) {
+        const prevContainer = document.querySelector(
+          `.editor-${blockIndex - 1}`
+        );
+        prevContainer.classList.add("no-space");
+        addScissorDiv(prevContainer);
+      }
+    }
+  };
+
+  const addScissorDiv = (container) => {
+    // Create a new div element
+    const noSpaceDiv = document.createElement("div");
+    noSpaceDiv.classList.add("no-space-div");
+
+    // Create a horizontal line
+    const line = document.createElement("hr");
+    line.classList.add("line-css");
+
+    // Create a scissor icon
+    const scissorIcon = document.createElement("p");
+    scissorIcon.innerText = "✂";
+    scissorIcon.classList.add("fas", "fa-cut");
+
+    scissorIcon.addEventListener("click", () => {
+      splitContent(container);
+    });
+
+    // Append the line and scissor icon to the new div
+    noSpaceDiv.appendChild(line);
+    noSpaceDiv.appendChild(scissorIcon);
+
+    // Find the next sibling element
+    const nextSibling = container.nextElementSibling;
+
+    // Insert the new div before the next sibling
+    container.parentNode.insertBefore(noSpaceDiv, nextSibling);
+  };
+
+  const splitContent = (container) => {
+    container.classList.remove("no-space");
+    // Remove the no-space-div
+    const container2 = document.querySelector(
+      `.contentwilladdhere-${blockIndex}`
+    );
+    const noSpaceDiv = container2.querySelector(".no-space-div");
+    console.log(noSpaceDiv, "noSpaceDiv");
+    if (noSpaceDiv) {
+      noSpaceDiv.remove();
+    }
+  };
+
   return (
-    <div className="editor" onClick={focus}>
-      {isEdited && (
+    <div
+      className={`editor  ${status ? "" : "bg-[#EDEAEA]"} editor-${blockIndex}`}
+      onClick={focus}
+    >
+      {isEdited && blockIndex != 0 && (
         <VerticalAlignTopOutlined
-          className="w-full mx-auto cursor-pointer"
-          onClick={() => mergeBlocks(blockIndex, "up")}
+          className="w-full mx-auto cursor-pointer absolute -mt-3 "
+          // onClick={() => mergeBlocks(blockIndex, "up")}
+          onClick={() => handlemergeContent(blockIndex, "up")}
         />
       )}
       {editorState && (
@@ -162,8 +245,9 @@ const CustomInlineToolbarEditor = ({
       )}
       {isEdited && (
         <VerticalAlignBottomOutlined
-          className="w-full mx-auto cursor-pointer"
-          onClick={() => mergeBlocks(blockIndex, "down")}
+          className="w-full mx-auto cursor-pointer absolute -mb-3"
+          onClick={() => handlemergeContent(blockIndex, "down")}
+          // onClick={() => mergeBlocks(blockIndex, "down")}
         />
       )}
     </div>

@@ -28,9 +28,20 @@ const ContentDetail = () => {
     const GetcontentByTitle = GetContent.filter(
       (x) => x.title == GetPath.title
     );
-
-    setContentData(GetcontentByTitle);
-  }, []);
+    if (!isEdited) {
+      setContentData(GetcontentByTitle);
+    } else {
+      const SetText = GetcontentByTitle[0].yooptaData[0].children[0].text
+        ?.split(GetcontentByTitle[0].separator === "doubleline" ? "\n\n" : "\n")
+        .filter((text) => text.trim() !== "");
+      console.log(
+        GetcontentByTitle[0].yooptaData[0].children[0].text,
+        "GetcontentByTitle[0]"
+      );
+      console.log(SetText, "FGFGFG");
+      setContentData(GetcontentByTitle);
+    }
+  }, [isEdited]);
 
   const onDragEnd = (result) => {
     if (!result.destination) return; // Dropped outside the list
@@ -215,7 +226,16 @@ const ContentDetail = () => {
     setIsTwyllableIndex(index);
   };
   const [textArray, setTextArray] = useState([]);
+  const [twyllableStatus, setTwyllableStatus] = useState([]);
 
+  const HandleTwyllableStatus = (index) => {
+    // Clone the existing twyllableStatus array to avoid mutating state directly
+    const updatedTwyllableStatus = [...twyllableStatus];
+    // Toggle the status of the clicked index
+    updatedTwyllableStatus[index] = !updatedTwyllableStatus[index];
+    // Update the state with the new twyllableStatus array
+    setTwyllableStatus(updatedTwyllableStatus);
+  };
   return (
     // <DragDropContext onDragEnd={onDragEnd}>
     <div>
@@ -272,7 +292,8 @@ const ContentDetail = () => {
                     const SetText = y.children[0]?.text
                       ?.split(x.separator === "doubleline" ? "\n\n" : "\n")
                       .filter((text) => text.trim() !== "");
-                    console.log(y.children, "DDDD");
+                    console.log(SetText, "Yoopta");
+                    console.log(x.yooptaData[0], "Yoopta");
                     // isEdited
                     //   ?
                     // setTextArray(SetText);
@@ -290,21 +311,40 @@ const ContentDetail = () => {
                       //       {...provided.dragHandleProps}
                       //     >
                       <div key={i}>
-                        {y.children[0]?.text
-                          ?.split(x.separator === "doubleline" ? "\n\n" : "\n")
-                          .filter((text) => text.trim() !== "")
-                          .map((text, ind) => (
+                        {(!isEdited ? y.children : SetText).map((text, ind) => {
+                          console.log(text, "Text");
+                          const status = twyllableStatus[ind] || false;
+                          return (
                             <div
                               key={ind}
-                              className="flex w-full items-center gap-5"
+                              className={` flex w-full items-center  block-${
+                                ind + 1
+                              }`}
                             >
-                              {isEdited && isTwyllableIndex == ind && (
-                                <div className="h-7 text-center cursor-pointer mb-7 w-7 bg-red-400 rounded-md text-white">
-                                  X
-                                </div>
-                              )}
+                              <div className="w-[5%]">
+                                {isEdited && isTwyllableIndex == ind && (
+                                  <div
+                                    onClick={() => HandleTwyllableStatus(ind)}
+                                    className={`h-7 text-center cursor-pointer mb-7 w-7 rounded-md text-white ${
+                                      status ? "bg-green-400" : "bg-red-400"
+                                    }`}
+                                  >
+                                    {status ? "✔" : "X"}
+                                  </div>
+                                )}
+
+                                {/* {isEdited && isTwyllableIndex == ind && (
+                                    <div
+                                      onClick={HandleChangeTwyllable}
+                                      className="h-7 text-center cursor-pointer mb-7 w-7 bg-green-400 rounded-md text-white"
+                                    >
+                                      ✔
+                                    </div>
+                                  )} */}
+                              </div>
+
                               <div
-                                className="w-full"
+                                className={`w-full contentwilladdhere-${ind}`}
                                 onMouseEnter={() => HandleTwyllable(ind)}
                               >
                                 {isEdited && (
@@ -331,10 +371,12 @@ const ContentDetail = () => {
                                   isEdited={isTwyllableIndex == ind && isEdited}
                                   initialText={text}
                                   separator={x.separator}
+                                  status={status}
                                 />
                               </div>
                             </div>
-                          ))}
+                          );
+                        })}
                       </div>
                       //     </div>
                       //   )}

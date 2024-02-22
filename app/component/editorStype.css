@@ -1,12 +1,14 @@
 .editor {
   box-sizing: border-box;
-  border: 1px solid #ddd;
+  /* border: 1px solid #ddd; */
+
   cursor: text;
   padding: 16px;
   border-radius: 2px;
   margin-bottom: 2em;
-  box-shadow: inset 0px 1px 8px -3px #ABABAB;
-  background: #fefefe;
+  /* box-shadow: inset 0px 1px 8px -3px #ABABAB; */
+  /* background: rgb(237, 234, 234); */
+  position: relative;
 }
 
 .editor :global(.public-DraftEditor-content) {
@@ -31,4 +33,16 @@
 .headlineButton:hover,
 .headlineButton:focus {
   background: #f3f3f3;
+}
+
+.no-space {
+  margin-bottom: 0px;
+}
+
+.fas {
+  @apply flex items-center justify-center absolute w-full -mt-3 z-40 cursor-pointer mr-5
+}
+
+.line-css {
+  @apply border border-black border-dashed
 }
