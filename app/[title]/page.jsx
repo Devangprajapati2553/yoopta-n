@@ -1,9 +1,6 @@
 "use client";
-import { VerticalAlignTopOutlined } from "@ant-design/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import YourComponent from "../component/Example";
 import CustomInlineToolbarEditor from "../component/SimpleInlineToolbarEditor";
 
 const ContentDetail = () => {
@@ -34,27 +31,14 @@ const ContentDetail = () => {
       const SetText = GetcontentByTitle[0].yooptaData[0].children[0].text
         ?.split(GetcontentByTitle[0].separator === "doubleline" ? "\n\n" : "\n")
         .filter((text) => text.trim() !== "");
-      console.log(
-        GetcontentByTitle[0].yooptaData[0].children[0].text,
-        "GetcontentByTitle[0]"
-      );
-      console.log(SetText, "FGFGFG");
+      // console.log(
+      //   GetcontentByTitle[0].yooptaData[0].children[0].text,
+      //   "GetcontentByTitle[0]"
+      // );
+      // console.log(SetText, "FGFGFG");
       setContentData(GetcontentByTitle);
     }
   }, [isEdited]);
-
-  const onDragEnd = (result) => {
-    if (!result.destination) return; // Dropped outside the list
-
-    const startIndex = result.source.index;
-    const endIndex = result.destination.index;
-
-    const newBlocks = Array.from(blocks);
-    const [removed] = newBlocks?.splice(startIndex, 1);
-    newBlocks.splice(endIndex, 0, removed);
-
-    setBlocks(newBlocks);
-  };
 
   const HandleSubmitContent = () => {
     const GetContent = JSON.parse(localStorage.getItem("withExports"));
@@ -73,120 +57,6 @@ const ContentDetail = () => {
     localStorage.setItem("withExports", JSON.stringify(FindContent));
   };
 
-  async function mergeBlock(
-    [index, directionAbove = true],
-    { items, setItems, addToDelete, cleanTwylls, setChanged }
-  ) {
-    try {
-      const result = Array.from(items);
-      cleanTwylls.current.push(result[index].__id);
-      if (directionAbove) {
-        result[index].text = `${result[index - 1].text}${result[index].text}`;
-        addToDelete(result[index - 1].__id);
-        cleanTwylls.current.push(result[index - 1].__id);
-        result.splice(index - 1, 1);
-      } else {
-        result[index].text += result[index + 1].text;
-        addToDelete(result[index + 1].__id);
-        cleanTwylls.current.push(result[index + 1].__id);
-        result.splice(index + 1, 1);
-      }
-      setChanged(true);
-      setItems(result);
-    } catch (e) {
-      console.log(e);
-    }
-    return Promise.resolve();
-  }
-
-  async function splitBlock(
-    [index, oldText, newText],
-    { items, setItems, cleanTwylls, setChanged }
-  ) {
-    const result = Array.from(items);
-    const toAdd = {
-      text: newText,
-      type: "paragraph",
-      __id: basePath.doc().id,
-      twyllable: true,
-    };
-    cleanTwylls.current.push(result[index].__id);
-    result[index].text = oldText;
-    result.splice(index + 1, 0, toAdd);
-    setItems(result);
-    setChanged(true);
-    return Promise.resolve();
-  }
-  async function deleteBlock(
-    [index],
-    { items, setItems, addToDelete, cleanTwylls, setChanged }
-  ) {
-    const result = Array.from(items);
-    addToDelete(result[index].__id);
-    cleanTwylls.current.push(result[index].__id);
-    result.splice(index, 1);
-    setItems(result);
-    setChanged(true);
-    return Promise.resolve();
-  }
-
-  function toggleTwyllableBlock(
-    [index],
-    { items, setItems, cleanTwylls, setChanged }
-  ) {
-    const result = Array.from(items);
-    result[index].twyllable = !result[index].twyllable;
-    cleanTwylls.current.push(result[index].__id);
-    setItems(result);
-    setChanged(true);
-  }
-
-  const runAddBlock = useCallback(
-    (...args) =>
-      mergeBlock(args, {
-        setItems,
-        addToDelete,
-        items,
-        cleanTwylls,
-        setChanged,
-      }),
-    [items, setItems, addToDelete, cleanTwylls]
-  );
-
-  const runDeleteBlock = useCallback(
-    (...args) =>
-      deleteBlock(args, {
-        setItems,
-        items,
-        addToDelete,
-        cleanTwylls,
-        setChanged,
-      }),
-    [items, setItems, addToDelete, cleanTwylls]
-  );
-
-  const runSplitBlock = useCallback(
-    (...args) =>
-      splitBlock(args, {
-        setItems,
-        items,
-
-        cleanTwylls,
-        setChanged,
-      }),
-    [items, setItems, cleanTwylls]
-  );
-
-  const runToggleTwyllable = useCallback(
-    (...args) =>
-      toggleTwyllableBlock(args, {
-        setItems,
-        items,
-        cleanTwylls,
-        setChanged,
-      }),
-    [items, setItems]
-  );
   const mergeBlocks = async (blockIndex) => {
     try {
       // Ensure blocks is initialized and is an array
@@ -222,7 +92,7 @@ const ContentDetail = () => {
   };
 
   const HandleTwyllable = (index) => {
-    console.log(index, "THIS IS AN INDEX");
+    // console.log(index, "THIS IS AN INDEX");
     setIsTwyllableIndex(index);
   };
   const [textArray, setTextArray] = useState([]);
@@ -236,8 +106,8 @@ const ContentDetail = () => {
     // Update the state with the new twyllableStatus array
     setTwyllableStatus(updatedTwyllableStatus);
   };
+  // console.log(contentData, "contentData");
   return (
-    // <DragDropContext onDragEnd={onDragEnd}>
     <div>
       <div className="card m-10 min-h-96">
         {contentData != undefined &&
@@ -281,38 +151,15 @@ const ContentDetail = () => {
                     </div>
                   </div>
                 </div>
-                <div className="ml-10">
-                  {/* <Droppable droppableId={`droppable-${x.id}`}>
-                      {(provided) => (
-                        <div
-                          {...provided.droppableProps}
-                          ref={provided.innerRef}
-                        > */}
+                <div className="block-merger ml-10">
                   {x.yooptaData?.map((y, i) => {
                     const SetText = y.children[0]?.text
                       ?.split(x.separator === "doubleline" ? "\n\n" : "\n")
                       .filter((text) => text.trim() !== "");
-                    console.log(SetText, "Yoopta");
-                    console.log(x.yooptaData[0], "Yoopta");
-                    // isEdited
-                    //   ?
-                    // setTextArray(SetText);
-                    // : setTextArray(y.children);
+
                     return (
-                      // <Draggable
-                      //   key={i}
-                      //   draggableId={`draggable-${y.id}`}
-                      //   index={i}
-                      // >
-                      //   {(provided) => (
-                      //     <div
-                      //       ref={provided.innerRef}
-                      //       {...provided.draggableProps}
-                      //       {...provided.dragHandleProps}
-                      //     >
                       <div key={i}>
                         {(!isEdited ? y.children : SetText).map((text, ind) => {
-                          console.log(text, "Text");
                           const status = twyllableStatus[ind] || false;
                           return (
                             <div
@@ -332,32 +179,12 @@ const ContentDetail = () => {
                                     {status ? "✔" : "X"}
                                   </div>
                                 )}
-
-                                {/* {isEdited && isTwyllableIndex == ind && (
-                                    <div
-                                      onClick={HandleChangeTwyllable}
-                                      className="h-7 text-center cursor-pointer mb-7 w-7 bg-green-400 rounded-md text-white"
-                                    >
-                                      ✔
-                                    </div>
-                                  )} */}
                               </div>
 
                               <div
                                 className={`w-full contentwilladdhere-${ind}`}
                                 onMouseEnter={() => HandleTwyllable(ind)}
                               >
-                                {isEdited && (
-                                  <button
-                                    className=" text-black px-2 flex items-center justify-center mx-auto w-full "
-                                    onClick={() => mergeBlocks(ind)}
-                                  >
-                                    {/* <Icon type="minus" /> */}
-                                    {/* <VerticalAlignTopOutlined /> */}
-
-                                    {/* + */}
-                                  </button>
-                                )}
                                 <CustomInlineToolbarEditor
                                   pushto={
                                     contentData[index].yooptaData[i].children
@@ -378,14 +205,8 @@ const ContentDetail = () => {
                           );
                         })}
                       </div>
-                      //     </div>
-                      //   )}
-                      // </Draggable>
                     );
                   })}
-                  {/* </div>
-                      )}
-                    </Droppable> */}
                 </div>
               </div>
             );
@@ -408,7 +229,6 @@ const ContentDetail = () => {
       </div>
       {/* <YourComponent /> */}
     </div>
-    // </DragDropContext>
   );
 };
 
