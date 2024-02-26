@@ -74,96 +74,66 @@ const CustomInlineToolbarEditor = ({
   pushto,
   setContentData,
   contentData,
-  index,
-  i,
   separator,
   status,
-}) => {
+  setOnlyText,
+}: any) => {
   const [editorState, setEditorState] = useState(null);
-  const [blocks, setBlocks] = useState(content);
   const [text, settext] = useState(initialText);
   const editorRef = useRef(null);
-  const onChange = (newEditorState) => {
+  const onChange = (newEditorState: any) => {
     setEditorState(newEditorState);
   };
 
   const focus = () => {
     editorRef.current.focus();
   };
-  // console.log(contentData,"contentData")
   const editorKey = useMemo(() => uuidv4(), []);
 
-  console.log(initialText, "initialText");
   useEffect(() => {
-    setEditorState(createEditorStateWithText(text?.text ? text?.text : text)); // Initialize editor content with the same text on both server and client
+    setEditorState(createEditorStateWithText(text?.text ? text?.text : text));
   }, [initialText]);
 
-  console.log(contentData, "contentData");
-  const mergeBlocks = (blockIndex: number, type: string) => {
-    if (blockIndex >= 0 && blockIndex < blocks.length) {
-      const newBlocks = [...blocks];
-      if (type === "up" && blockIndex > 0) {
-        newBlocks[blockIndex - 1] += "<br/>" + newBlocks[blockIndex];
-
-        newBlocks.splice(blockIndex, 1);
-        blockIndex -= 1;
-        console.log(newBlocks, "newBlocks");
-      } else if (type === "down" && blockIndex < newBlocks.length - 1) {
-        newBlocks[blockIndex] += "<br/>" + newBlocks[blockIndex + 1];
-        newBlocks.splice(blockIndex + 1, 1);
-      }
-      // com
-      const newData = [...contentData];
-      console.log(contentData, "contentData");
-      console.log(newData, "contentData newData");
-      if (newData && newData.length > 0) {
-        const firstItem = { ...newData[0].yooptaData[0] };
-        console.log(firstItem, "newData");
-        if (firstItem.children && firstItem.children.length > 0) {
-          console.log(newBlocks, "Waste");
-          // let stringOnly;
-          // if (separator === "doubleline") {
-          //   stringOnly = newBlocks.join(",");
-          // } else {
-          //   stringOnly = newBlocks.join(",");
-          // }
-          console.log(firstItem.children[0].text, "firstItem.children[0].text");
-
-          firstItem.children[0].text = newBlocks
-            .join("',")
-            .replace(/, /g, "\n\n");
-        }
-        // newData[0].yooptaData[0].children[0].text = newBlocks
-        //   .join("'")
-        //   .replace(/,/g, "\n\n");
-        newData[0].yooptaData[0].children[0].text = newBlocks.join("\n\n");
-        console.log(newBlocks.join("\n\n"), "newblock");
-
-        console.log(newData, "Last response");
-        setContentData(newData);
-      }
-    }
-  };
-
-  // console.log(contentData, "Map data");
-
   const handlemergeContent = (blockIndex: number, type: string) => {
-    if (blockIndex >= 0 && blockIndex < blocks.length) {
+    if (blockIndex >= 0 && blockIndex < content.length) {
       const container = document.querySelector(`.editor-${blockIndex}`);
-      if (type === "down" && blockIndex < blocks.length - 1) {
+      if (type === "down" && blockIndex < content.length - 1) {
         container.classList.add("no-space");
         addScissorDiv(container);
+        mergeBlocks(blockIndex, blockIndex + 1);
       } else if (type === "up" && blockIndex > 0) {
         const prevContainer = document.querySelector(
           `.editor-${blockIndex - 1}`
         );
         prevContainer.classList.add("no-space");
         addScissorDiv(prevContainer);
+        mergeBlocks(blockIndex - 1, blockIndex);
       }
     }
   };
 
-  const addScissorDiv = (container) => {
+  const mergeBlocks = (index1: number, index2: number) => {
+    // const container2 = document.querySelector(`.editor-${index1}`);
+    // const GetDiv = container2.querySelector(`.DraftEditor-root`);
+    // console.log(GetDiv, "GetDiv");
+
+    const container = document.querySelector(`.editor-${index2}`);
+    // container?.appendChild(GetDiv!);
+
+    console.log(container, "container");
+    const mergedContent = content[index1] + content[index2];
+    // console.log(mergedContent, "mergedContent");
+    content[index1] = mergedContent;
+
+    // console.log(content[index1], "content[index1]");
+    content.splice(index2, 1);
+    index2--;
+    console.log(content, "Total Content");
+    setOnlyText([...content]);
+    setContentData([...contentData]);
+  };
+
+  const addScissorDiv = (container: any) => {
     // Create a new div element
     const noSpaceDiv = document.createElement("div");
     noSpaceDiv.classList.add("no-space-div");
@@ -192,14 +162,14 @@ const CustomInlineToolbarEditor = ({
     container.parentNode.insertBefore(noSpaceDiv, nextSibling);
   };
 
-  const splitContent = (container) => {
+  const splitContent = (container: any) => {
     container.classList.remove("no-space");
     // Remove the no-space-div
     const container2 = document.querySelector(
       `.contentwilladdhere-${blockIndex}`
     );
     const noSpaceDiv = container2.querySelector(".no-space-div");
-    console.log(noSpaceDiv, "noSpaceDiv");
+    // console.log(noSpaceDiv, "noSpaceDiv");
     if (noSpaceDiv) {
       noSpaceDiv.remove();
     }

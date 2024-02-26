@@ -8,34 +8,25 @@ const ContentDetail = () => {
   const [contentData, setContentData] = useState([]);
   const ref = useRef();
   const router = useRouter();
-  const [blocks, setBlocks] = useState(null);
-  const [items, setItems] = useState([]);
   const [toDelete, setToDelete] = useState([]);
   const [isEdited, setIsEdited] = useState(false);
-  const [isTwyllable, setIsTwyllable] = useState(false);
   const [isTwyllableIndex, setIsTwyllableIndex] = useState();
-  const cleanTwylls = useRef([]);
-  const addToDelete = useCallback(
-    (id) => setToDelete([...toDelete, id]),
-    [toDelete]
-  );
+
+  const [onlyText, setOnlyText] = useState();
 
   useEffect(() => {
-    const GetContent = JSON.parse(localStorage.getItem("withExports"));
+    const GetContent = JSON.parse(localStorage?.getItem("withExports"));
     const GetcontentByTitle = GetContent.filter(
       (x) => x.title == GetPath.title
     );
+    setAllContentData(GetcontentByTitle[0].yooptaData);
     if (!isEdited) {
       setContentData(GetcontentByTitle);
     } else {
-      const SetText = GetcontentByTitle[0].yooptaData[0].children[0].text
-        ?.split(GetcontentByTitle[0].separator === "doubleline" ? "\n\n" : "\n")
-        .filter((text) => text.trim() !== "");
-      // console.log(
-      //   GetcontentByTitle[0].yooptaData[0].children[0].text,
-      //   "GetcontentByTitle[0]"
-      // );
-      // console.log(SetText, "FGFGFG");
+      // const SetText = GetcontentByTitle[0].yooptaData[0].children[0].text
+      //   ?.split(GetcontentByTitle[0].separator === "doubleline" ? "\n\n" : "\n")
+      //   .filter((text) => text.trim() !== "");
+
       setContentData(GetcontentByTitle);
     }
   }, [isEdited]);
@@ -57,45 +48,9 @@ const ContentDetail = () => {
     localStorage.setItem("withExports", JSON.stringify(FindContent));
   };
 
-  const mergeBlocks = async (blockIndex) => {
-    try {
-      // Ensure blocks is initialized and is an array
-      if (!Array.isArray(contentData)) {
-        console.error("Blocks is not properly initialized or is not an array");
-        return;
-      }
-
-      const newBlocks = [...contentData];
-
-      // Ensure blockIndex is within bounds
-      if (blockIndex < 0 || blockIndex >= newBlocks.length - 1) {
-        console.error("Invalid blockIndex:", blockIndex);
-        return;
-      }
-
-      // Merge content
-      newBlocks[blockIndex].content += newBlocks[blockIndex + 1].content;
-
-      // Handle item cleanup and deletion
-      cleanTwylls.current.push(newBlocks[blockIndex + 1].__id);
-      addToDelete(newBlocks[blockIndex + 1].__id);
-
-      // Remove the merged block
-      newBlocks.splice(blockIndex + 1, 1);
-
-      // Update state
-      setContentData(newBlocks);
-      setChanged(true);
-    } catch (e) {
-      console.error("Error in mergeBlocks:", e);
-    }
-  };
-
   const HandleTwyllable = (index) => {
-    // console.log(index, "THIS IS AN INDEX");
     setIsTwyllableIndex(index);
   };
-  const [textArray, setTextArray] = useState([]);
   const [twyllableStatus, setTwyllableStatus] = useState([]);
 
   const HandleTwyllableStatus = (index) => {
@@ -106,12 +61,29 @@ const ContentDetail = () => {
     // Update the state with the new twyllableStatus array
     setTwyllableStatus(updatedTwyllableStatus);
   };
-  // console.log(contentData, "contentData");
+  const mainData = [...contentData];
+  const [AllContentData, setAllContentData] = useState([]);
+
+  useEffect(() => {
+    setOnlyText(
+      contentData[0]?.yooptaData[0]?.children[0]?.text
+        ?.split(contentData[0].separator === "doubleline" ? "\n\n" : "\n")
+        .filter((text) => text.trim() !== "")
+    );
+  }, [contentData]);
+  // useEffect(() => {
+  //   setOnlyText(
+  //     contentData[0]?.yooptaData[0]?.children[0]?.text
+  //       ?.split(contentData[0].separator === "doubleline" ? "\n\n" : "\n")
+  //       .filter((text) => text.trim() !== "")
+  //   );
+  // }, [onlyText]);
+
   return (
     <div>
       <div className="card m-10 min-h-96">
-        {contentData != undefined &&
-          contentData.map((x, index) => {
+        {mainData != undefined &&
+          mainData.map((x, index) => {
             ref.current = x.yooptaData;
             return (
               <div key={index}>
@@ -151,66 +123,62 @@ const ContentDetail = () => {
                     </div>
                   </div>
                 </div>
-                <div className="block-merger ml-10">
-                  {x.yooptaData?.map((y, i) => {
-                    const SetText = y.children[0]?.text
-                      ?.split(x.separator === "doubleline" ? "\n\n" : "\n")
-                      .filter((text) => text.trim() !== "");
-
-                    return (
-                      <div key={i}>
-                        {(!isEdited ? y.children : SetText).map((text, ind) => {
-                          const status = twyllableStatus[ind] || false;
-                          return (
-                            <div
-                              key={ind}
-                              className={` flex w-full items-center  block-${
-                                ind + 1
-                              }`}
-                            >
-                              <div className="w-[5%]">
-                                {isEdited && isTwyllableIndex == ind && (
-                                  <div
-                                    onClick={() => HandleTwyllableStatus(ind)}
-                                    className={`h-7 text-center cursor-pointer mb-7 w-7 rounded-md text-white ${
-                                      status ? "bg-green-400" : "bg-red-400"
-                                    }`}
-                                  >
-                                    {status ? "✔" : "X"}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div
-                                className={`w-full contentwilladdhere-${ind}`}
-                                onMouseEnter={() => HandleTwyllable(ind)}
-                              >
-                                <CustomInlineToolbarEditor
-                                  pushto={
-                                    contentData[index].yooptaData[i].children
-                                  }
-                                  contentData={contentData}
-                                  i={i}
-                                  index={index}
-                                  setContentData={setContentData}
-                                  content={SetText}
-                                  blockIndex={ind}
-                                  isEdited={isTwyllableIndex == ind && isEdited}
-                                  initialText={text}
-                                  separator={x.separator}
-                                  status={status}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
             );
           })}
+
+        <div className="block-merger ml-10">
+          {AllContentData?.map((y, i) => {
+            const SetText = y.children[0]?.text
+              ?.split(contentData[0].separator === "doubleline" ? "\n\n" : "\n")
+              .filter((text) => text.trim() !== "");
+
+            return (
+              <div key={i}>
+                {onlyText?.map((text, ind) => {
+                  const status = twyllableStatus[ind] || false;
+                  return (
+                    <div
+                      key={ind}
+                      className={` flex w-full items-center  block-${ind + 1}`}
+                    >
+                      <div className="w-[5%]">
+                        {isEdited && isTwyllableIndex == ind && (
+                          <div
+                            onClick={() => HandleTwyllableStatus(ind)}
+                            className={`h-7 text-center cursor-pointer mb-7 w-7 rounded-md text-white ${
+                              status ? "bg-green-400" : "bg-red-400"
+                            }`}
+                          >
+                            {status ? "✔" : "X"}
+                          </div>
+                        )}
+                      </div>
+
+                      <div
+                        className={`w-full contentwilladdhere-${ind}`}
+                        onMouseEnter={() => HandleTwyllable(ind)}
+                      >
+                        <CustomInlineToolbarEditor
+                          pushto={contentData[0].yooptaData[0].children}
+                          contentData={contentData}
+                          setContentData={setContentData}
+                          content={onlyText}
+                          setOnlyText={setOnlyText}
+                          blockIndex={ind}
+                          isEdited={isTwyllableIndex == ind && isEdited}
+                          initialText={text}
+                          separator={contentData[0].separator}
+                          status={status}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex items-center justify-center">
