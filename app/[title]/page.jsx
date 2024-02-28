@@ -335,13 +335,15 @@ const ContentDetail = () => {
                           />
                         </div>
                       ))}
-                      {isEdited && isTwyllableIndex == ind && (
-                        <VerticalAlignBottomOutlined
-                          className="w-full mx-auto cursor-pointer absolute -mb-3"
-                          onClick={() => handlemergeContent(ind, "down")}
-                          // onClick={() => mergeBlocks(ind, "down")}
-                        />
-                      )}
+                      {isEdited &&
+                        isTwyllableIndex == ind &&
+                        modifiedData.length !== 1 && (
+                          <VerticalAlignBottomOutlined
+                            className="w-full mx-auto cursor-pointer absolute -mb-3"
+                            onClick={() => handlemergeContent(ind, "down")}
+                            // onClick={() => mergeBlocks(ind, "down")}
+                          />
+                        )}
                     </div>
                   )}
                 </div>
