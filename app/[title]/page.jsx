@@ -2,7 +2,10 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CustomInlineToolbarEditor from "../component/SimpleInlineToolbarEditor";
-
+import {
+  VerticalAlignBottomOutlined,
+  VerticalAlignTopOutlined,
+} from "@ant-design/icons";
 const ContentDetail = () => {
   const GetPath = useParams();
   const [contentData, setContentData] = useState([]);
@@ -71,13 +74,112 @@ const ContentDetail = () => {
         .filter((text) => text.trim() !== "")
     );
   }, [contentData]);
-  // useEffect(() => {
-  //   setOnlyText(
-  //     contentData[0]?.yooptaData[0]?.children[0]?.text
-  //       ?.split(contentData[0].separator === "doubleline" ? "\n\n" : "\n")
-  //       .filter((text) => text.trim() !== "")
-  //   );
-  // }, [onlyText]);
+
+  const editorRef = useRef(null);
+
+  const focus = () => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+  };
+
+  const handlemergeContent = (ind, type) => {
+    if (ind >= 0 && ind < modifiedData.length) {
+      const container = document.querySelector(`.editor-${ind}`);
+      if (type === "down" && ind < modifiedData.length - 1) {
+        mergeBlocks(ind, ind + 1);
+      } else if (type === "up" && ind > 0) {
+        const prevContainer = document.querySelector(`.editor-${ind - 1}`);
+
+        mergeBlocks(ind - 1, ind);
+      }
+    }
+  };
+
+  const mergeBlocks = (index1, index2) => {
+    console.log(modifiedData[index1], "mergedContent first");
+    console.log(modifiedData[index2], "mergedContent second");
+    if (
+      typeof modifiedData[index1] !== "string" &&
+      typeof modifiedData[index2] === "string"
+    ) {
+      const mergedContent = [...modifiedData[index1], modifiedData[index2]];
+
+      console.log(mergedContent, "fdgpjfdgiofdgukfghd");
+      modifiedData[index1] = mergedContent;
+
+      modifiedData.splice(index2, 1);
+      index2--;
+      console.log([...modifiedData], "AQQQQQQQQQQQw");
+      setModifiedData([...modifiedData]);
+    } else if (
+      typeof modifiedData[index2] !== "string" &&
+      typeof modifiedData[index1] === "string"
+    ) {
+      const mergedContent = [modifiedData[index1], ...modifiedData[index2]];
+
+      console.log(mergedContent, "fdgpjfdgiofdgukfghd");
+      modifiedData[index1] = mergedContent;
+
+      modifiedData.splice(index2, 1);
+      index2--;
+      console.log([...modifiedData], "AQQQQQQQQQQQw");
+      setModifiedData([...modifiedData]);
+    } else if (
+      typeof modifiedData[index2] !== "string" &&
+      typeof modifiedData[index1] !== "string"
+    ) {
+      const mergedContent = [...modifiedData[index1], ...modifiedData[index2]];
+
+      console.log(mergedContent, "fdgpjfdgiofdgukfghd");
+      modifiedData[index1] = mergedContent;
+
+      modifiedData.splice(index2, 1);
+      index2--;
+      console.log([...modifiedData], "AQQQQQQQQQQQw");
+      setModifiedData([...modifiedData]);
+    } else {
+      const mergedContent = [modifiedData[index1], modifiedData[index2]];
+      console.log(mergedContent, "mergedContent last");
+      console.log(mergedContent, "mergedContentmergedContentmergedContent");
+      // console.log(mergedContent, "mergedContent");
+      if (index1 > index2) {
+        modifiedData[index1] = mergedContent;
+
+        modifiedData.splice(index2, 1);
+        index2--;
+      } else {
+        modifiedData[index2] = mergedContent;
+
+        modifiedData.splice(index1, 1);
+        index1--;
+      }
+      console.log([...modifiedData], "AQQQQQQQQQQQw");
+      setModifiedData([...modifiedData]);
+    }
+  };
+
+  const [modifiedData, setModifiedData] = useState([]);
+  useEffect(() => {
+    console.log(onlyText, "onlyText");
+
+    setModifiedData(onlyText);
+  }, [onlyText]);
+
+  const handleSplitIt = (text, indxx) => {
+    const check = text.slice(0, indxx); // Extract elements before indxx
+    const check2 = text.slice(indxx); // Extract elements from indxx onwards
+
+    const data2 = modifiedData.filter((x) => typeof x === "string");
+
+    const arr1 = [
+      check.length === 1 ? check[0] : check,
+      check2.length === 1 ? check2[0] : check2,
+      ...data2,
+    ];
+
+    setOnlyText(arr1);
+  };
 
   return (
     <div>
@@ -128,53 +230,121 @@ const ContentDetail = () => {
           })}
 
         <div className="block-merger ml-10">
-          {AllContentData?.map((y, i) => {
-            const SetText = y.children[0]?.text
-              ?.split(contentData[0].separator === "doubleline" ? "\n\n" : "\n")
-              .filter((text) => text.trim() !== "");
+          {modifiedData?.map((text, ind) => {
+            const status = twyllableStatus[ind] || false;
 
             return (
-              <div key={i}>
-                {onlyText?.map((text, ind) => {
-                  const status = twyllableStatus[ind] || false;
-                  return (
+              <div
+                key={ind}
+                className={` flex w-full items-center  block-${ind + 1}`}
+              >
+                <div className="w-[5%]">
+                  {isEdited && isTwyllableIndex == ind && (
                     <div
-                      key={ind}
-                      className={` flex w-full items-center  block-${ind + 1}`}
+                      onClick={() => HandleTwyllableStatus(ind)}
+                      className={`h-7 text-center cursor-pointer mb-7 w-7 rounded-md text-white ${
+                        status ? "bg-green-400" : "bg-red-400"
+                      }`}
                     >
-                      <div className="w-[5%]">
-                        {isEdited && isTwyllableIndex == ind && (
-                          <div
-                            onClick={() => HandleTwyllableStatus(ind)}
-                            className={`h-7 text-center cursor-pointer mb-7 w-7 rounded-md text-white ${
-                              status ? "bg-green-400" : "bg-red-400"
-                            }`}
-                          >
-                            {status ? "✔" : "X"}
-                          </div>
-                        )}
-                      </div>
-
-                      <div
-                        className={`w-full contentwilladdhere-${ind}`}
-                        onMouseEnter={() => HandleTwyllable(ind)}
-                      >
-                        <CustomInlineToolbarEditor
-                          pushto={contentData[0].yooptaData[0].children}
-                          contentData={contentData}
-                          setContentData={setContentData}
-                          content={onlyText}
-                          setOnlyText={setOnlyText}
-                          blockIndex={ind}
-                          isEdited={isTwyllableIndex == ind && isEdited}
-                          initialText={text}
-                          separator={contentData[0].separator}
-                          status={status}
-                        />
-                      </div>
+                      {status ? "✔" : "X"}
                     </div>
-                  );
-                })}
+                  )}
+                </div>
+
+                <div
+                  className={`w-full contentwilladdhere-${ind}`}
+                  onMouseEnter={() => HandleTwyllable(ind)}
+                >
+                  {text && typeof text === "string" ? (
+                    <div
+                      className={`editor  ${
+                        status ? "" : "bg-[#EDEAEA]"
+                      } editor-${ind}`}
+                      onClick={focus}
+                    >
+                      {isEdited && ind != 0 && isTwyllableIndex == ind && (
+                        <VerticalAlignTopOutlined
+                          className="w-full mx-auto cursor-pointer absolute -mt-3 "
+                          // onClick={() => mergeBlocks(ind, "up")}
+                          onClick={() => handlemergeContent(ind, "up")}
+                        />
+                      )}
+                      {/* <div className="no-space-div">
+                        <hr className="line-css" />
+                        <p className="fas fa-cut">✂</p>
+                      </div> */}
+                      {/* here */}
+                      <CustomInlineToolbarEditor
+                        pushto={contentData[0].yooptaData[0].children}
+                        contentData={contentData}
+                        setContentData={setContentData}
+                        content={modifiedData}
+                        setOnlyText={setModifiedData}
+                        blockIndex={ind}
+                        isEdited={isTwyllableIndex == ind && isEdited}
+                        initialText={text}
+                        separator={contentData[0].separator}
+                        status={status}
+                      />
+                      {/* here */}
+                      {isEdited && isTwyllableIndex == ind && (
+                        <VerticalAlignBottomOutlined
+                          className="w-full mx-auto cursor-pointer absolute -mb-3"
+                          onClick={() => handlemergeContent(ind, "down")}
+                          // onClick={() => mergeBlocks(ind, "down")}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className={`editor arrayEditor-${ind}  ${
+                        status ? "" : "bg-[#EDEAEA]"
+                      } editor-${ind}`}
+                      onClick={focus}
+                    >
+                      {isEdited && ind != 0 && isTwyllableIndex == ind && (
+                        <VerticalAlignTopOutlined
+                          className="w-full mx-auto cursor-pointer absolute -mt-3 "
+                          // onClick={() => mergeBlocks(ind, "up")}
+                          onClick={() => handlemergeContent(ind, "up")}
+                        />
+                      )}
+                      {text?.map((xx, indxx) => (
+                        <div key={indxx} className={``}>
+                          {indxx !== 0 && (
+                            <div
+                              className="no-space-div py-3"
+                              onClick={() => handleSplitIt(text, indxx)}
+                            >
+                              <hr className="line-css" />
+                              <p className="fas fa-cut">✂</p>
+                            </div>
+                          )}
+
+                          <CustomInlineToolbarEditor
+                            pushto={contentData[0].yooptaData[0].children}
+                            contentData={contentData}
+                            setContentData={setContentData}
+                            content={modifiedData}
+                            setOnlyText={setModifiedData}
+                            blockIndex={ind}
+                            isEdited={isTwyllableIndex == ind && isEdited}
+                            initialText={xx}
+                            separator={contentData[0].separator}
+                            status={status}
+                          />
+                        </div>
+                      ))}
+                      {isEdited && isTwyllableIndex == ind && (
+                        <VerticalAlignBottomOutlined
+                          className="w-full mx-auto cursor-pointer absolute -mb-3"
+                          onClick={() => handlemergeContent(ind, "down")}
+                          // onClick={() => mergeBlocks(ind, "down")}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

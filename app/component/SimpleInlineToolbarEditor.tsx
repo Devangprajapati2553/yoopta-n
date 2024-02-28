@@ -64,7 +64,6 @@ const HeadlinesButton = ({ onOverrideContent }) => {
 const inlineToolbarPlugin = createInlineToolbarPlugin();
 const { InlineToolbar } = inlineToolbarPlugin;
 const plugins = [inlineToolbarPlugin];
-// const initialText = "Start typing...";
 
 const CustomInlineToolbarEditor = ({
   initialText,
@@ -79,146 +78,84 @@ const CustomInlineToolbarEditor = ({
   setOnlyText,
 }: any) => {
   const [editorState, setEditorState] = useState(null);
-  const [text, settext] = useState(initialText);
+  const [selection, setSelection] = useState(null);
+  const [toolbarPosition, setToolbarPosition] = useState({}); // To store toolbar position
   const editorRef = useRef(null);
-  const onChange = (newEditorState: any) => {
-    setEditorState(newEditorState);
-  };
-
-  const focus = () => {
-    editorRef.current.focus();
-  };
-  const editorKey = useMemo(() => uuidv4(), []);
 
   useEffect(() => {
-    setEditorState(createEditorStateWithText(text?.text ? text?.text : text));
+    if (typeof initialText === "string") {
+      setEditorState(createEditorStateWithText(initialText));
+    } else if (typeof initialText !== "string" && initialText) {
+      console.log(initialText, "initialTextinitialText");
+      // initialText.forEach((x) => {
+      //   setEditorState(createEditorStateWithText(x));
+      // });
+    } else {
+      console.error("Invalid initial text format:", initialText);
+    }
   }, [initialText]);
 
-  const handlemergeContent = (blockIndex: number, type: string) => {
-    if (blockIndex >= 0 && blockIndex < content.length) {
-      const container = document.querySelector(`.editor-${blockIndex}`);
-      if (type === "down" && blockIndex < content.length - 1) {
-        container.classList.add("no-space");
-        addScissorDiv(container);
-        mergeBlocks(blockIndex, blockIndex + 1);
-      } else if (type === "up" && blockIndex > 0) {
-        const prevContainer = document.querySelector(
-          `.editor-${blockIndex - 1}`
-        );
-        prevContainer.classList.add("no-space");
-        addScissorDiv(prevContainer);
-        mergeBlocks(blockIndex - 1, blockIndex);
-      }
+  // Function to handle editor state change
+  const onChange = (newEditorState: any) => {
+    setEditorState(newEditorState);
+    const currentSelection = newEditorState.getSelection();
+    setSelection(currentSelection);
+  };
+
+  // Function to handle mouse up event
+  const handleMouseUp = () => {
+    const selectionState = editorState.getSelection();
+    if (!selectionState.isCollapsed()) {
+      const selectionRect = getSelectionRect();
+      setToolbarPosition({
+        top: selectionRect.top,
+        left: selectionRect.left + selectionRect.width / 2,
+      });
     }
   };
 
-  const mergeBlocks = (index1: number, index2: number) => {
-    // const container2 = document.querySelector(`.editor-${index1}`);
-    // const GetDiv = container2.querySelector(`.DraftEditor-root`);
-    // console.log(GetDiv, "GetDiv");
-
-    const container = document.querySelector(`.editor-${index2}`);
-    // container?.appendChild(GetDiv!);
-
-    console.log(container, "container");
-    const mergedContent = content[index1] + content[index2];
-    // console.log(mergedContent, "mergedContent");
-    content[index1] = mergedContent;
-
-    // console.log(content[index1], "content[index1]");
-    content.splice(index2, 1);
-    index2--;
-    console.log(content, "Total Content");
-    setOnlyText([...content]);
-    setContentData([...contentData]);
-  };
-
-  const addScissorDiv = (container: any) => {
-    // Create a new div element
-    const noSpaceDiv = document.createElement("div");
-    noSpaceDiv.classList.add("no-space-div");
-
-    // Create a horizontal line
-    const line = document.createElement("hr");
-    line.classList.add("line-css");
-
-    // Create a scissor icon
-    const scissorIcon = document.createElement("p");
-    scissorIcon.innerText = "✂";
-    scissorIcon.classList.add("fas", "fa-cut");
-
-    scissorIcon.addEventListener("click", () => {
-      splitContent(container);
-    });
-
-    // Append the line and scissor icon to the new div
-    noSpaceDiv.appendChild(line);
-    noSpaceDiv.appendChild(scissorIcon);
-
-    // Find the next sibling element
-    const nextSibling = container.nextElementSibling;
-
-    // Insert the new div before the next sibling
-    container.parentNode.insertBefore(noSpaceDiv, nextSibling);
-  };
-
-  const splitContent = (container: any) => {
-    container.classList.remove("no-space");
-    // Remove the no-space-div
-    const container2 = document.querySelector(
-      `.contentwilladdhere-${blockIndex}`
-    );
-    const noSpaceDiv = container2.querySelector(".no-space-div");
-    // console.log(noSpaceDiv, "noSpaceDiv");
-    if (noSpaceDiv) {
-      noSpaceDiv.remove();
-    }
+  // Function to get selection rectangle
+  const getSelectionRect = () => {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return null;
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    return rect;
   };
 
   return (
-    <div
-      className={`editor  ${status ? "" : "bg-[#EDEAEA]"} editor-${blockIndex}`}
-      onClick={focus}
-    >
-      {isEdited && blockIndex != 0 && (
-        <VerticalAlignTopOutlined
-          className="w-full mx-auto cursor-pointer absolute -mt-3 "
-          // onClick={() => mergeBlocks(blockIndex, "up")}
-          onClick={() => handlemergeContent(blockIndex, "up")}
-        />
-      )}
+    <div onMouseUp={handleMouseUp}>
       {editorState && (
         <>
           <Editor
-            editorKey={editorKey}
             editorState={editorState}
             onChange={onChange}
             plugins={plugins}
             ref={editorRef}
           />
-          <InlineToolbar>
-            {(externalProps) => (
-              <div>
-                <BoldButton {...externalProps} key={"editor"} />
-                <ItalicButton {...externalProps} />
-                <UnderlineButton {...externalProps} />
-                <CodeButton {...externalProps} />
-                <HeadlinesButton {...externalProps} />
-                <UnorderedListButton {...externalProps} />
-                <OrderedListButton {...externalProps} />
-                <BlockquoteButton {...externalProps} />
-                <CodeBlockButton {...externalProps} />
-              </div>
-            )}
-          </InlineToolbar>
+          {selection && !selection.isCollapsed() && (
+            <div
+              className="inline-toolbar"
+              style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
+            >
+              <InlineToolbar>
+                {(externalProps) => (
+                  <div>
+                    <BoldButton {...externalProps} />
+                    <ItalicButton {...externalProps} />
+                    <UnderlineButton {...externalProps} />
+                    <CodeButton {...externalProps} />
+                    <HeadlinesButton {...externalProps} />
+                    <UnorderedListButton {...externalProps} />
+                    <OrderedListButton {...externalProps} />
+                    <BlockquoteButton {...externalProps} />
+                    <CodeBlockButton {...externalProps} />
+                  </div>
+                )}
+              </InlineToolbar>
+            </div>
+          )}
         </>
-      )}
-      {isEdited && (
-        <VerticalAlignBottomOutlined
-          className="w-full mx-auto cursor-pointer absolute -mb-3"
-          onClick={() => handlemergeContent(blockIndex, "down")}
-          // onClick={() => mergeBlocks(blockIndex, "down")}
-        />
       )}
     </div>
   );
