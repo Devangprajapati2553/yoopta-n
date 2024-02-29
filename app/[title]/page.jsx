@@ -73,6 +73,11 @@ const ContentDetail = () => {
         ?.split(contentData[0].separator === "doubleline" ? "\n\n" : "\n")
         .filter((text) => text.trim() !== "")
     );
+    setDefaultText(
+      contentData[0]?.yooptaData[0]?.children[0]?.text
+        ?.split(contentData[0].separator === "doubleline" ? "\n\n" : "\n")
+        .filter((text) => text.trim() !== "")
+    );
   }, [contentData]);
 
   const editorRef = useRef(null);
@@ -160,18 +165,32 @@ const ContentDetail = () => {
   };
 
   const [modifiedData, setModifiedData] = useState([]);
+  const [defaultText, setDefaultText] = useState();
   useEffect(() => {
     console.log(onlyText, "onlyText");
 
     setModifiedData(onlyText);
   }, [onlyText]);
 
-  const handleSplitIt = (text, indxx) => {
+  const handleSplitIt = (text, indxx, ind) => {
     const check = text.slice(0, indxx); // Extract elements before indxx
     const check2 = text.slice(indxx); // Extract elements from indxx onwards
-
+    // console.log(text, "text");
     const data2 = modifiedData.filter((x) => typeof x === "string");
+    // let i = ind;
+    // let j = indxx; //we have to split this
 
+    console.log(onlyText[ind], "TestTestTestTest");
+    console.log(modifiedData, "TestTestTestTest");
+
+    console.log(text, "TestTestTestTest");
+    // console.log(text[indxx - 1], "TestTestTestTest");
+    console.log(defaultText[ind], "TestTestTestTest");
+    console.log(defaultText, "defaultText[ind]");
+    // defaultText[ind] = text[0];
+    // defaultText[ind + 1] = text[1];
+    console.log(onlyText, "TestTestTestTest");
+    console.log(defaultText, "defaultText[ind]");
     const arr1 = [
       check.length === 1 ? check[0] : check,
       check2.length === 1 ? check2[0] : check2,
@@ -180,7 +199,13 @@ const ContentDetail = () => {
 
     setOnlyText(arr1);
   };
+  const [editorState, setEditorState] = useState(null);
 
+  const getFinalValue = (editorState) => {
+    const contentState = editorState.getCurrentContent();
+    // Do whatever you need with contentState
+    console.log("Final Value:", contentState);
+  };
   return (
     <div>
       <div className="card m-10 min-h-96">
@@ -314,7 +339,7 @@ const ContentDetail = () => {
                           {indxx !== 0 && (
                             <div
                               className="no-space-div py-3"
-                              onClick={() => handleSplitIt(text, indxx)}
+                              onClick={() => handleSplitIt(text, indxx, ind)}
                             >
                               <hr className="line-css" />
                               <p className="fas fa-cut">✂</p>
@@ -332,6 +357,8 @@ const ContentDetail = () => {
                             initialText={xx}
                             separator={contentData[0].separator}
                             status={status}
+                            editorState={editorState}
+                            setEditorState={setEditorState}
                           />
                         </div>
                       ))}

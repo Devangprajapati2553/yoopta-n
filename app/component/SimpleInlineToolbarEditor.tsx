@@ -21,6 +21,7 @@ import {
   VerticalAlignBottomOutlined,
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
+import { convertToRaw } from "draft-js";
 
 const HeadlinesPicker = ({ onOverrideContent }) => {
   const onWindowClick = () => {
@@ -122,6 +123,12 @@ const CustomInlineToolbarEditor = ({
     const rect = range.getBoundingClientRect();
     return rect;
   };
+  const getFinalValue = () => {
+    const contentState = editorState.getCurrentContent();
+    const rawContent = convertToRaw(contentState);
+    // You can now use rawContent for further processing or store it in your state
+    console.log("Final Value:", rawContent);
+  };
 
   return (
     <div onMouseUp={handleMouseUp}>
@@ -157,6 +164,7 @@ const CustomInlineToolbarEditor = ({
           )}
         </>
       )}
+      {/* <button onClick={getFinalValue}>Get Final Value</button> */}
     </div>
   );
 };
