@@ -76,6 +76,7 @@ const CustomInlineToolbarEditor = ({
   separator,
   status,
   setOnlyText,
+  allContent,
 }: any) => {
   const [editorState, setEditorState] = useState(null);
   const [selection, setSelection] = useState(null);
@@ -103,7 +104,7 @@ const CustomInlineToolbarEditor = ({
     setSelection(currentSelection);
     const contentState = editorState.getCurrentContent();
     const rawContent = convertToRaw(contentState);
-    console.log(rawContent,"rawContent")
+    // allContent.push(rawContent);
   };
 
   // Function to handle mouse up event

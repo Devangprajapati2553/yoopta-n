@@ -16,7 +16,7 @@ const ContentDetail = () => {
   const [isTwyllableIndex, setIsTwyllableIndex] = useState();
 
   const [onlyText, setOnlyText] = useState();
-
+  console.log(ref.current, "ref.current");
   useEffect(() => {
     const GetContent = JSON.parse(localStorage?.getItem("withExports"));
     const GetcontentByTitle = GetContent.filter(
@@ -200,6 +200,8 @@ const ContentDetail = () => {
     setOnlyText(arr1);
   };
 
+  let allContent = [];
+
   return (
     <div>
       <div className="card m-10 min-h-96">
@@ -304,6 +306,7 @@ const ContentDetail = () => {
                         initialText={text}
                         separator={contentData[0].separator}
                         status={status}
+                        allContent={allContent}
                       />
                       {/* here */}
                       {isEdited && isTwyllableIndex == ind && (
