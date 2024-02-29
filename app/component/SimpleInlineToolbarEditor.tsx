@@ -22,7 +22,6 @@ import {
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
 import { convertToRaw } from "draft-js";
-
 const HeadlinesPicker = ({ onOverrideContent }) => {
   const onWindowClick = () => {
     onOverrideContent(undefined);
@@ -100,7 +99,11 @@ const CustomInlineToolbarEditor = ({
   const onChange = (newEditorState: any) => {
     setEditorState(newEditorState);
     const currentSelection = newEditorState.getSelection();
+
     setSelection(currentSelection);
+    const contentState = editorState.getCurrentContent();
+    const rawContent = convertToRaw(contentState);
+    console.log(rawContent,"rawContent")
   };
 
   // Function to handle mouse up event
@@ -164,7 +167,6 @@ const CustomInlineToolbarEditor = ({
           )}
         </>
       )}
-      {/* <button onClick={getFinalValue}>Get Final Value</button> */}
     </div>
   );
 };

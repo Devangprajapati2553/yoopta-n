@@ -199,13 +199,7 @@ const ContentDetail = () => {
 
     setOnlyText(arr1);
   };
-  const [editorState, setEditorState] = useState(null);
 
-  const getFinalValue = (editorState) => {
-    const contentState = editorState.getCurrentContent();
-    // Do whatever you need with contentState
-    console.log("Final Value:", contentState);
-  };
   return (
     <div>
       <div className="card m-10 min-h-96">
@@ -357,8 +351,6 @@ const ContentDetail = () => {
                             initialText={xx}
                             separator={contentData[0].separator}
                             status={status}
-                            editorState={editorState}
-                            setEditorState={setEditorState}
                           />
                         </div>
                       ))}
